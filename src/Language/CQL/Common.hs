@@ -18,70 +18,66 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 -}
-{-# LANGUAGE AllowAmbiguousTypes   #-}
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE ExplicitForAll        #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE ImpredicativeTypes    #-}
-{-# LANGUAGE InstanceSigs          #-}
-{-# LANGUAGE KindSignatures        #-}
-{-# LANGUAGE LiberalTypeSynonyms   #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE ExplicitForAll #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE ImpredicativeTypes #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE LiberalTypeSynonyms #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Language.CQL.Common where
 
-import           Control.Arrow   (left)
-import           Data.Char
-import           Data.Foldable   as Foldable (toList)
-import           Data.Kind
-import           Data.Map.Strict as Map hiding (foldl)
-import           Data.Maybe
-import           Data.Set        as Set (Set, empty, insert, member, singleton)
-import           Data.Typeable
+import Control.Arrow (left)
+import Data.Char
+import Data.Foldable as Foldable (toList)
+import Data.Kind
+import Data.Map.Strict as Map hiding (foldl)
+import Data.Maybe
+import Data.Set as Set (Set, empty, insert, singleton)
+import Data.Typeable
 
 split' :: [(a, Either b1 b2)] -> ([(a, b1)], [(a, b2)])
-split' []           = ([],[])
-split' ((w, ei):tl) =
-  let (a,b) = split' tl
-  in case ei of
-    Left  x -> ((w,x):a, b      )
-    Right x -> (      a, (w,x):b)
+split' [] = ([], [])
+split' ((w, ei) : tl) =
+  let (a, b) = split' tl
+   in case ei of
+        Left x -> ((w, x) : a, b)
+        Right x -> (a, (w, x) : b)
 
 fromListAccum :: (Ord v, Ord k) => [(k, v)] -> Map k (Set v)
-fromListAccum []          = Map.empty
-fromListAccum ((k,v):kvs) = Map.insert k op (fromListAccum kvs)
+fromListAccum [] = Map.empty
+fromListAccum ((k, v) : kvs) = Map.insert k op (fromListAccum kvs)
   where
     op = maybe (Set.singleton v) (Set.insert v) (Map.lookup k r)
-    r  = fromListAccum kvs
+    r = fromListAccum kvs
 
 -- | Converts a 'List' to a 'Set', returning an error when there are duplicate bindings.
 toSetSafely :: (Show k, Ord k) => [k] -> Err (Set k)
 toSetSafely [] = return Set.empty
-toSetSafely (k:l) = do
+toSetSafely (k : l) = do
   l' <- toSetSafely l
-  if Set.member k l'
-  then Left $ "Duplicate binding: " ++ show k
-  else pure $ Set.insert k l'
+  pure $ Set.insert k l'
 
 -- | Converts an association list to a 'Map', returning an error when there are duplicate bindings.
-toMapSafely :: (Show k, Ord k) => [(k,v)] -> Err (Map k v)
+toMapSafely :: (Show k, Ord k) => [(k, v)] -> Err (Map k v)
 toMapSafely [] = return Map.empty
-toMapSafely ((k,v):l) = do
+toMapSafely ((k, v) : l) = do
   l' <- toMapSafely l
-  if Map.member k l'
-  then Left $ "Duplicate binding: " ++ show k
-  else pure $ Map.insert k v l'
+  pure $ Map.insert k v l'
 
 lookup' :: (Show k, Show a, Ord k) => k -> Map k a -> a
 lookup' m v = fromMaybe (error $ "Can't find " ++ show v ++ " in " ++ show m) $ Map.lookup m v
@@ -107,28 +103,30 @@ type ID = Integer
 
 -- | Drop quotes if argument doesn't contain a space.
 dropQuotes :: String -> String
-dropQuotes s = if ' ' `elem` s then Prelude.filter (not . ('\"' ==)) s
-                               else s
+dropQuotes s =
+  if ' ' `elem` s
+    then Prelude.filter (not . ('\"' ==)) s
+    else s
 
 section :: String -> String -> String
 section heading body = heading ++ "\n" ++ indentLines body
 
 indentLines :: String -> String
-indentLines = foldMap (\l -> tab <> l <> "\n"). lines
+indentLines = foldMap (\l -> tab <> l <> "\n") . lines
 
 tab :: String
 tab = "    "
 
 sepTup :: (Show a1, Show a2) => String -> (a1, a2) -> String
-sepTup sep (k,v) = show k ++ sep ++ show v
+sepTup sep (k, v) = show k ++ sep ++ show v
 
 -- | A version of intercalate that works on Foldables instead of just List,
 -- | adapted from PureScript.
 intercalate :: (Foldable f, Monoid m) => m -> f m -> m
 intercalate sep xs = snd (foldl go (True, mempty) xs)
   where
-    go (True, _)   x = (False, x)
-    go (_   , acc) x = (False, acc <> sep <> x)
+    go (True, _) x = (False, x)
+    go (_, acc) x = (False, acc <> sep <> x)
 
 mapl :: Foldable f => (a -> b) -> f a -> [b]
 mapl fn = fmap fn . Foldable.toList
@@ -154,7 +152,9 @@ mergeMaps = foldl Map.union Map.empty
 -- The drawback of using this is that the compiler will treat this as a unique
 -- constraint, so it won't be able to detect specific unused constraints
 type family TyMap (f :: Type -> Constraint) (xs :: [Type]) :: Constraint
+
 type instance TyMap f '[] = ()
+
 type instance TyMap f (t ': ts) = (f t, TyMap f ts)
 
 -- | Allows to set multiple contraints for multiple type variables at the same
@@ -164,5 +164,7 @@ type instance TyMap f (t ': ts) = (f t, TyMap f ts)
 -- The drawback of using this is that the compiler will treat this as a unique
 -- constraint, so it won't be able to detect specific unused constraints
 type family MultiTyMap (fs :: [Type -> Constraint]) (xs :: [Type]) :: Constraint
+
 type instance MultiTyMap '[] _ = ()
+
 type instance MultiTyMap (f : fs) xs = (TyMap f xs, MultiTyMap fs xs)
