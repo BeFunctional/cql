@@ -17,15 +17,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-name:                cql
-version:             0.1.0.0
-github:              "statebox/cql"
-license:             AGPL
-author:              "Statebox"
-copyright:           "2019 Statebox"
+name: cql
+version: 0.1.0.0
+github: "statebox/cql"
+license: AGPL
+author: "Statebox"
+copyright: "2019 Statebox"
 
 extra-source-files:
-- README.md
+  - README.md
 
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
@@ -34,65 +34,78 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/statebox/cql#readme>
+description: Please see the README on GitHub at <https://github.com/statebox/cql#readme>
 
 dependencies:
-- base >= 4.7 && < 5
-- containers
-- megaparsec
-- QuickCheck
-- scientific
-- semigroups
-- term-rewriting
-- tabular
-- deepseq
-- twee-lib
-- pretty
-- containers
-- union-find >=0.2 && <0.3
-- fgl >=5.5
-- mtl >= 2.0
-- PropLogic >= 0.9.0.4
+  - base >= 4.7 && < 5
+  - containers
+  - megaparsec
+  - QuickCheck
+  - scientific
+  - semigroups
+  - term-rewriting
+  - tabular
+  - deepseq
+  - twee-lib
+  - pretty
+  - containers
+  - union-find >=0.2 && <0.3
+  - fgl >=5.5
+  - mtl >= 2.0
+  - PropLogic >= 0.9.0.4
 
 library:
   source-dirs: src
 
 ghc-options:
-- -Weverything
-- -Werror
-- -Wno-implicit-prelude
-- -Wno-missing-export-lists
-- -Wno-missing-import-lists
-- -Wno-safe
-- -Wno-missing-safe-haskell-mode
-- -Wno-missing-local-signatures
-- -Wno-unsafe
-- -Wno-monomorphism-restriction
-- -Wno-unused-type-patterns
-- -Wno-name-shadowing
-- -Wno-prepositive-qualified-module
-- -Wno-unused-packages
+  - -Weverything
+  - -Werror
+  - -Wno-implicit-prelude
+  - -Wno-missing-export-lists
+  - -Wno-missing-import-lists
+  - -Wno-safe
+  - -Wno-missing-safe-haskell-mode
+  - -Wno-missing-local-signatures
+  - -Wno-unsafe
+  - -Wno-monomorphism-restriction
+  - -Wno-unused-type-patterns
+  - -Wno-name-shadowing
+  - -Wno-prepositive-qualified-module
+  - -Wno-unused-packages
 
 executables:
   cql:
-    main:                Main.hs
-    source-dirs:         cli
+    main: Main.hs
+    source-dirs: cli
     ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
     dependencies:
-    - cql
+      - cql
+  cql-datatype:
+    main: Main.hs
+    source-dirs: datatype
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - cql
+      - containers
+      - text
+      - lattices
+      - optparse-applicative
 
 tests:
   cql-test:
-    main:                Spec.hs
-    source-dirs:         test
+    main: Spec.hs
+    source-dirs: test
     ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
     dependencies:
-    - cql
-    - hspec
-    - QuickCheck
+      - cql
+      - hspec
+      - QuickCheck
